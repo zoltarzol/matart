@@ -1,11 +1,11 @@
+# matart/app.py
+
 import sys
-from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget,
-    QHBoxLayout, QVBoxLayout, QToolBar,
-    QMenuBar, QSplitter
-)
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QToolBar, QSplitter
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt
+
+from .canvas import CanvasWidget
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -21,17 +21,22 @@ class MainWindow(QMainWindow):
         # 2) Toolbar for shapes
         toolbar = QToolBar("Shape Tools")
         self.addToolBar(toolbar)
-        for shape in ("Square", "Triangle", "Circle", "Diamond", "Polygon"):
-            act = QAction(shape, self)
-            toolbar.addAction(act)
+
+        # Single CanvasWidget instance
+        canvas = CanvasWidget()
+
+        # Shape-selection actions
+        for name in ("square", "triangle", "circle", "diamond", "polygon"):
+            action = QAction(name.capitalize(), self)
+            action.setCheckable(True)
+            # When clicked, set the current shape on the canvas
+            action.triggered.connect(lambda checked, s=name: canvas.set_current_shape(s))
+            toolbar.addAction(action)
 
         # 3) Central splitter: canvas | params
         splitter = QSplitter(Qt.Horizontal)
-        # Left: canvas placeholder
-        canvas = QWidget()
-        canvas.setStyleSheet("background-color: white;")
         splitter.addWidget(canvas)
-        # Right: params placeholder
+
         params = QWidget()
         params.setMinimumWidth(250)
         splitter.addWidget(params)
@@ -40,9 +45,9 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    w = MainWindow()
-    w.resize(1024, 768)
-    w.show()
+    window = MainWindow()
+    window.resize(1024, 768)
+    window.show()
     sys.exit(app.exec())
 
 if __name__ == "__main__":
